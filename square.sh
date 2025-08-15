@@ -1,23 +1,22 @@
 #!/bin/bash
 
 usage_msg () {
-	echo -e "Usage:\n$0 encrypt <plaintext> \n$0 decrypt <ciphertext> "
+	echo -e "Usage:\n$0 encrypt <plaintext> \n$0 decrypt <ciphertext>"
+	echo -e "echo <plaintext> | $0 encr\necho <ciphertext> | $0 decr"
 }
 
 ## Check starting params
 if [[ ! -z $1 ]];then
 	mode="$1"
-	shift
 else
 	echo "No input parameter given." && usage_msg && exit 1
 fi
 
 
 ## Assign and check input
-if [[ ! -z $1 ]]; then
-	text="$1"
-	shift
-elif [[ -z $1 ]];then while IFS= read line;do text="$line" ; done
+if [[ ! -z $2 ]]; then
+	text="$2"
+elif [[ -z $2 ]];then while IFS= read line;do text="$line" ; done
 else echo "No ciphertext given." && exit 1
 fi
 
@@ -60,9 +59,8 @@ case "$mode" in
 	dec|decrypt)
 		## Get ciphertext and perform checks
 		ciphertext="$text"
-		if [[ $ciphertext =~ ([1-5][0-9] ?) ]];then
-		        echo "Input validated."
-		else echo "Invalid input." && exit 1
+		if [[ ! $ciphertext =~ ([1-5][0-9] ?) ]];then
+		        echo "Invalid input." && exit 1
 		fi
 
 		plaintext=""
