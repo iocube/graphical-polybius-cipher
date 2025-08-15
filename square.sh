@@ -34,9 +34,6 @@ case "$mode" in
 	enc|encrypt)
 		## Get plaintext, transform and perform checks
 		plaintext="$(echo $text | sed -E 's/([[:alpha:]])/ \1 /g' | tr '[:lower:]' '[:upper:]' )"
-		if [[ $plaintext =~ [0-9] ]];then 
-			echo "Warning: Numbers will not be encrypted."
-		fi
 		
 		ciphertext=""
 		for letter in ${plaintext};do 
