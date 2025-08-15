@@ -33,7 +33,7 @@ alphabet[row5]="V W X Y Z"
 case "$mode" in
 	enc|encrypt)
 		## Get plaintext, transform and perform checks
-		plaintext="$(echo $text | sed -E 's/([[:alpha:]])/\1 /g' | tr '[:lower:]' '[:upper:]' )"
+		plaintext="$(echo $text | sed -E 's/([[:alpha:]])/ \1 /g' | tr '[:lower:]' '[:upper:]' )"
 		if [[ $plaintext =~ [0-9] ]];then 
 			echo "Warning: Numbers will not be encrypted."
 		fi
@@ -65,6 +65,11 @@ case "$mode" in
 
 		plaintext=""
 		for bifid_letter in ${ciphertext};do
+			#W1 Interpret single digits are actual numbers or ignore ## Choose behaviour below
+			if [[ ! $bifid_letter =~ [0-9][0-9] ]];then plaintext+="$bifid_letter" ; continue ; fi
+			#if [[ ! $bifid_letter =~ [0-9][0-9] ]];then continue ; fi
+			#W1
+			
 			row=$(echo "${bifid_letter:0:1}")
 			column=$(echo "${bifid_letter:1:1}")
 			decoded_letter=$(echo "${alphabet[row"$row"]}" | cut -d' ' -f"$column")
