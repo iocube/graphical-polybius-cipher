@@ -1,21 +1,27 @@
 #!/bin/bash
 
-## Get ciphertext
-# Assign first parameter string as ciphertext
-if [[ ! -z $1 ]]; then
-	ciphertext="$1"
+usage_msg () {
+	echo -e "Usage:\n$0 encrypt <plaintext> \n$0 decrypt <ciphertext> "
+}
+
+## Check starting params
+if [[ ! -z $1 ]];then
+	mode="$1"
 	shift
-else echo "No ciphertext given." && exit 1
+else
+	echo "No input parameter given." && usage_msg && exit 1
 fi
-ciphertext="13 24 35 23 15 42"  #debug
-if [[ $ciphertext =~ ([1-5][0-9] ?) ]];then
-	echo "Input validated."
-else echo "Invalid input." && exit 1
+
+
+## Assign and check input
+if [[ ! -z $1 ]]; then
+	text="$1"
+	shift
+elif [[ -z $1 ]];then while IFS= read line;do text="$line" ; done
+else echo "No ciphertext given." && exit 1
 fi
 
 ## Declare alphabet square
-# Automated
-
 declare -A alphabet
 alphabet[row1]="A B C D E"
 alphabet[row2]="F G H IJ K"
@@ -23,10 +29,54 @@ alphabet[row3]="L M N O P"
 alphabet[row4]="Q R S T U"
 alphabet[row5]="V W X Y Z"
 
-for bifid_letter in ${ciphertext};do
-	row=$(echo "${bifid_letter:0:1}")
-	column=$(echo "${bifid_letter:1:1}")
-	decoded_letter=$(echo "${alphabet[row"$row"]}" | cut -d' ' -f"$column")
-	echo "$decoded_letter"
-done
+
+## Main
+case "$mode" in
+	enc|encrypt)
+		## Get plaintext, transform and perform checks
+		plaintext="$(echo $text | sed -E 's/([[:alpha:]])/\1 /g' | tr '[:lower:]' '[:upper:]' )"
+		if [[ $plaintext =~ [0-9] ]];then 
+			echo "Warning: Numbers will not be encrypted."
+		fi
+		
+		ciphertext=""
+		for letter in ${plaintext};do 
+			for (( i=1; i<=5 ; i++ ));do
+				if [[ $letter =~ [[:digit:]] ]];then ciphertext+="$letter " ; break ; fi
+				if [[ $(echo ${alphabet[row$i]} | grep -q "$letter" && echo "1" ) -eq 1 ]];then
+					counter=1; for letter_element in ${alphabet[row$i]};do
+						if [[ $letter_element =~ $letter ]];then
+							ciphertext+="$i$counter "
+						else counter=$((counter + 1))
+						fi
+					done
+				
+				fi
+			done
+		done
+		echo "$ciphertext"
+
+	;;
+	dec|decrypt)
+		## Get ciphertext and perform checks
+		ciphertext="$text"
+		if [[ $ciphertext =~ ([1-5][0-9] ?) ]];then
+		        echo "Input validated."
+		else echo "Invalid input." && exit 1
+		fi
+
+		plaintext=""
+		for bifid_letter in ${ciphertext};do
+			row=$(echo "${bifid_letter:0:1}")
+			column=$(echo "${bifid_letter:1:1}")
+			decoded_letter=$(echo "${alphabet[row"$row"]}" | cut -d' ' -f"$column")
+			plaintext+="$decoded_letter"
+		done
+		echo "$plaintext"
+	;;
+esac
+
+
+
+
 
